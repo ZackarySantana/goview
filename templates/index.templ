@@ -1,10 +1,13 @@
 package templates
 
-import "github.com/will-wow/typed-htmx-go/htmx"
+import (
+	"fmt"
+	"github.com/will-wow/typed-htmx-go/htmx"
+)
 
 var hx = htmx.NewTempl()
 
-templ Root() {
+templ Root(data chan templ.Component) {
 	<!DOCTYPE html>
 	<html lang="en">
 		<head>
@@ -19,6 +22,85 @@ templ Root() {
 			{ hx.Post("/test")... }
 		>
 			Something 7
+			@templ.Flush() {
+				<template shadowrootmode="open">
+					<ul>
+						<li>
+							<slot name="slot-1">Loading...</slot>
+						</li>
+						<li>
+							<slot name="slot-2">Loading...</slot>
+						</li>
+						<li>
+							<slot name="slot-3">Loading...</slot>
+						</li>
+						<li>
+							<slot name="slot-4">Loading...</slot>
+						</li>
+						<li>
+							<slot name="slot-5">Loading...</slot>
+						</li>
+					</ul>
+				</template>
+			}
+			for d := range data {
+				@templ.Flush() {
+					@d
+				}
+			}
+		</body>
+	</html>
+}
+
+templ Slot(num int) {
+	<span slot={ fmt.Sprintf("slot-%d", num) }>We have loaded num { num }!</span>
+}
+
+type SlotContents struct {
+	Name     string
+	Contents templ.Component
+}
+
+templ ExampleSlot(name string) {
+	<slot name={ name }>
+		<div>Loading { name }...</div>
+	</slot>
+}
+
+templ A() {
+	<div>Component A.</div>
+}
+
+templ B() {
+	<div>Component B.</div>
+}
+
+templ C() {
+	<div>Component C.</div>
+}
+
+templ Page(data chan SlotContents) {
+	<!DOCTYPE html>
+	<html>
+		<head>
+			<title>Page</title>
+		</head>
+		<body>
+			<h1>Page</h1>
+			@templ.Flush() {
+				<template shadowrootmode="open">
+					@ExampleSlot("a")
+					@ExampleSlot("b")
+					@ExampleSlot("c")
+				</template>
+			}
+			for sc := range data {
+				@templ.Flush() {
+					<div slot={ sc.Name }>
+						@sc.Contents
+					</div>
+				}
+			}
 		</body>
 	</html>
 }
