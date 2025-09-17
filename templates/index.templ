@@ -1,5 +1,9 @@
 package templates
 
+import "github.com/will-wow/typed-htmx-go/htmx"
+
+var hx = htmx.NewTempl()
+
 templ Root() {
 	<!DOCTYPE html>
 	<html lang="en">
@@ -10,6 +14,11 @@ templ Root() {
 			<link rel="stylesheet" href="/assets/styles.css"/>
 			<title>Document</title>
 		</head>
-		<body class="text-yellow-500">Something 7</body>
+		<body
+			class="text-yellow-500"
+			{ hx.Post("/test")... }
+		>
+			Something 7
+		</body>
 	</html>
 }
