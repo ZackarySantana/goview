@@ -1,6 +1,6 @@
 package template
 
-import "github.com/zackarysantana/goview/template/component"
+import "github.com/zackarysantana/goview/template/component/button"
 
 templ Index() {
 	<!DOCTYPE html>
@@ -25,7 +25,9 @@ templ MainSidebar() {
 	<div class="p-4 border-r max-w-80 min-w-80 border-sidebar-border bg-sidebar">
 		<h1 class="text-lg font-semibold text-sidebar-foreground">Goview</h1>
 		<div class="flex gap-5 my-3">
-			@component.PrimaryButton("Run") {
+			@button.Plain(button.ButtonProps{
+				Name: "Run",
+			}) {
 				@PlaySVG()
 			}
 			@SecondaryButton("Stop")

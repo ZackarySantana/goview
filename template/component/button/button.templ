@@ -1,0 +1,41 @@
+package button
+
+templ Plain(p ButtonProps) {
+	@core(p, plain) {
+		{ children... }
+	}
+}
+
+templ Primary(p ButtonProps) {
+	@core(p, primary) {
+		{ children... }
+	}
+}
+
+templ core(p ButtonProps, variant ButtonVariant) {
+	if p.Href != "" {
+		<a
+			href={ p.Href }
+			class={ Class(p, variant) }
+			aria-disabled?={ p.Disabled }
+			role="button"
+			tabindex="0"
+		>
+			{ children... }
+			if p.Name != "" {
+				{ p.Name }
+			}
+		</a>
+	} else {
+		<button
+			type={ Type(p.Type) }
+			class={ Class(p, variant) }
+			disabled?={ p.Disabled }
+		>
+			{ children... }
+			if p.Name != "" {
+				{ p.Name }
+			}
+		</button>
+	}
+}
