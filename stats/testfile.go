@@ -9,7 +9,8 @@ import (
 )
 
 type TestFile struct {
-	FileName string
+	// These fields are set by the caller.
+	Name, Path string
 
 	Tests      []Test
 	Examples   []Example
