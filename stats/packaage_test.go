@@ -14,7 +14,7 @@ func TestParsePackage(t *testing.T) {
 		dir      string
 		expected Package
 	}{
-		"ParsesSinglePackage": {
+		"Parses": {
 			fsys: fstest.MapFS{
 				"pkg/foo.go": {Data: []byte("package pkg_name // A comment \n func Foo() {}")},
 				"pkg/foo_test.go": {Data: []byte(`package pkg_name
@@ -36,7 +36,7 @@ func TestParsePackage(t *testing.T) {
 				OtherFiles: []string{"README.md"},
 			},
 		},
-		"SeparatesExternalTestPackage": {
+		"ParsesAndTrimsPackageSuffixOf_test": {
 			fsys: fstest.MapFS{
 				"dir/x_test.go": {Data: []byte(`package mypkg_test`)},
 			},
