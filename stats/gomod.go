@@ -68,9 +68,13 @@ func ParseGoMod(r io.Reader) (*GoMod, error) {
 		if strings.HasPrefix(line, "tool ") {
 			tool := strings.TrimSpace(strings.TrimPrefix(line, "tool "))
 			fields := strings.Fields(tool)
+			version := ""
+			if len(fields) > 1 {
+				version = fields[1]
+			}
 			data.Tools = append(data.Tools, Tool{
 				Name:    fields[0],
-				Version: fields[1],
+				Version: version,
 			})
 			continue
 		}
