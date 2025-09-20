@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const testFileContent = `package mypackage
+const testFileContent = `package pkg_name
 
 import "testing"
 
@@ -45,12 +45,10 @@ func TestParseTestFile(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			t.Run("ParseTestFile", func(t *testing.T) {
-				result, err := ParseTestFile(strings.NewReader(tc.input))
-				require.NoError(t, err)
-				require.NotNil(t, result)
-				assert.Equal(t, tc.expected, *result)
-			})
+			result, err := ParseTestFile(strings.NewReader(tc.input))
+			require.NoError(t, err)
+			require.NotNil(t, result)
+			assert.Equal(t, tc.expected, *result)
 		})
 	}
 }
