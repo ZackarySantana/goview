@@ -13,6 +13,7 @@ import (
 
 func (m *Module) Reload(filesystem fs.FS, fsPath string) error {
 	fsPath = path.Clean(fsPath)
+
 	if fsPath == "go.mod" {
 		return m.reloadGoMod(filesystem, fsPath)
 	}
@@ -25,9 +26,10 @@ func (m *Module) Reload(filesystem fs.FS, fsPath string) error {
 		return m.reloadGoFile(filesystem, fsPath)
 	}
 
-	// otherwise, it's a directory and we should parse the whole package again.
+	// it might be a file or a directory, it's hard to tell with fsnotify events
 
-	return nil
+	return m.reloadDirectory(filesystem, fsPath)
+
 }
 
 func (m *Module) reloadGoMod(filesystem fs.FS, fileName string) error {
