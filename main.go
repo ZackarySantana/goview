@@ -8,6 +8,7 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/fsnotify/fsnotify"
+	"github.com/go-git/go-git/v6/plumbing/format/gitignore"
 	"github.com/zackarysantana/goview/internal/watcher"
 
 	"github.com/zackarysantana/goview/stats"
@@ -26,8 +27,16 @@ func Main() {
 }
 
 func main() {
+
+	gitIgnore := []string{".git", "node_modules"}
+	patterns := make([]gitignore.Pattern, len(gitIgnore))
+	for i, p := range gitIgnore {
+		patterns[i] = gitignore.ParsePattern(p, nil)
+	}
+	ignores := gitignore.NewMatcher(patterns)
+
 	fs := os.DirFS(".")
-	module, err := stats.ParseModule(fs, ".")
+	module, err := stats.ParseModule(fs, ".", ignores)
 	if err != nil {
 		fmt.Println("Error parsing module:", err)
 		return
@@ -35,7 +44,7 @@ func main() {
 
 	fmt.Printf("Module: %+v\n", module.GoMod)
 
-	watcher, err := watcher.NewWatcher(context.Background(), ".", []string{".git", "node_modules"})
+	watcher, err := watcher.NewWatcher(context.Background(), ".", ignores)
 	if err != nil {
 		fmt.Println("Error creating watcher:", err)
 		return

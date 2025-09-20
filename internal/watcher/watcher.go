@@ -23,19 +23,16 @@ type Watcher struct {
 }
 
 // NewWatcher creates a recursive watcher rooted at rootDir.
-func NewWatcher(ctx context.Context, rootDir string, ignores []string) (*Watcher, error) {
+func NewWatcher(ctx context.Context, rootDir string, ignores gitignore.Matcher) (*Watcher, error) {
 	w, err := fsnotify.NewWatcher()
 	if err != nil {
 		return nil, err
 	}
-	var ps []gitignore.Pattern
-	for _, p := range ignores {
-		ps = append(ps, gitignore.ParsePattern(p, nil))
-	}
 	wd := &Watcher{
 		w:       w,
+		ignores: ignores,
+		mu:      sync.Mutex{},
 		watched: make(map[string]struct{}),
-		ignores: gitignore.NewMatcher(ps),
 	}
 
 	// Add all existing dirs

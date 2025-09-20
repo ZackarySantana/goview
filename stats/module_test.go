@@ -6,6 +6,7 @@ import (
 	"testing"
 	"testing/fstest"
 
+	"github.com/go-git/go-git/v6/plumbing/format/gitignore"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -81,7 +82,7 @@ func TestParseModule(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			result, err := ParseModule(tc.fsys, tc.dir)
+			result, err := ParseModule(tc.fsys, tc.dir, gitignore.NewMatcher(nil))
 			fmt.Println(tc.fsys)
 			require.NoError(t, err)
 			require.NotNil(t, result)

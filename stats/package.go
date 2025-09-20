@@ -29,7 +29,7 @@ type Package struct {
 
 func ParsePackage(filesystem fs.FS, dirPath string) (*Package, error) {
 	pkg := &Package{
-		Directory: dirPath,
+		Directory: path.Clean(dirPath),
 	}
 
 	entries, err := fs.ReadDir(filesystem, dirPath)
