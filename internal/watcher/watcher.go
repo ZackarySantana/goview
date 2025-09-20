@@ -15,9 +15,8 @@ import (
 )
 
 type Watcher struct {
-	w        *fsnotify.Watcher
-	ignores  []string
-	ignores2 gitignore.Matcher
+	w       *fsnotify.Watcher
+	ignores gitignore.Matcher
 
 	mu      sync.Mutex
 	watched map[string]struct{}
@@ -34,10 +33,9 @@ func NewWatcher(ctx context.Context, rootDir string, ignores []string) (*Watcher
 		ps = append(ps, gitignore.ParsePattern(p, nil))
 	}
 	wd := &Watcher{
-		w:        w,
-		watched:  make(map[string]struct{}),
-		ignores:  ignores,
-		ignores2: gitignore.NewMatcher(ps),
+		w:       w,
+		watched: make(map[string]struct{}),
+		ignores: gitignore.NewMatcher(ps),
 	}
 
 	// Add all existing dirs
@@ -63,7 +61,7 @@ func (wd *Watcher) addDirRecursive(root string) error {
 		if !d.IsDir() {
 			return nil
 		}
-		if wd.ignores2.Match(strings.Split(p, string(os.PathSeparator)), true) {
+		if wd.ignores.Match(strings.Split(p, string(os.PathSeparator)), true) {
 			return filepath.SkipDir
 		}
 		return wd.addWatch(p)
