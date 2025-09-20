@@ -32,7 +32,7 @@ func (m *Module) Reload(filesystem fs.FS, fsPath string) error {
 	}
 
 	if strings.HasSuffix(fsPath, "_test.go") {
-		return m.reloadGoTestFile2(filesystem, fsPath)
+		return m.reloadGoTestFile(filesystem, fsPath)
 	}
 
 	if strings.HasSuffix(fsPath, ".go") {
@@ -57,7 +57,7 @@ func (m *Module) reloadGoMod(filesystem fs.FS, fileName string) error {
 	return nil
 }
 
-func (m *Module) reloadGoTestFile2(filesystem fs.FS, path string) error {
+func (m *Module) reloadGoTestFile(filesystem fs.FS, path string) error {
 	return m.reloadFileHelper(filesystem, path,
 		func(pkgAndTests *PackageAndTests, fileName string) error {
 			if slices.Contains(pkgAndTests.Pkg.TestFiles, fileName) {
