@@ -53,6 +53,28 @@ func NewWatcher(ctx context.Context, rootDir string, ignores []string) (*Watcher
 	return wd, nil
 }
 
+func (wd *Watcher) Watch(ctx context.Context, root string, callback func(event fsnotify.Event)) error {
+	go func() {
+		<-ctx.Done()
+		_ = wd.w.Close()
+	}()
+
+	if err := os.MkdirAll(root, 0o755); err != nil {
+		return err
+	}
+
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	fmt.Println("Watching:", root)
+	for ev := range wd.Events(ctx) {
+		// fmt.Printf("event: %-10s %s\n", opString(ev.Op), ev.Name)
+		callback(ev)
+	}
+
+	return nil
+}
+
 func (wd *Watcher) addDirRecursive(root string) error {
 	return filepath.WalkDir(root, func(p string, d os.DirEntry, err error) error {
 		if err != nil {
@@ -160,27 +182,6 @@ func (wd *Watcher) Events(ctx context.Context) <-chan fsnotify.Event {
 	}()
 
 	return out
-}
-
-func Watch(ctx context.Context, root string, ignores []string) error {
-	if err := os.MkdirAll(root, 0o755); err != nil {
-		return err
-	}
-
-	ctx, cancel := context.WithCancel(ctx)
-	defer cancel()
-
-	wd, err := NewWatcher(ctx, root, ignores)
-	if err != nil {
-		return err
-	}
-
-	fmt.Println("Watching:", root)
-	for ev := range wd.Events(ctx) {
-		fmt.Printf("event: %-10s %s\n", opString(ev.Op), ev.Name)
-	}
-
-	return nil
 }
 
 func opString(op fsnotify.Op) string {
