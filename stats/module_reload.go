@@ -11,8 +11,17 @@ import (
 	"strings"
 )
 
-func (m *Module) Reload(filesystem fs.FS, fsPath string) error {
+type ReloadType int
+
+const (
+	ReloadTypeWrite ReloadType = iota
+	ReloadTypeRemove
+	ReloadTypeRename
+)
+
+func (m *Module) Reload(filesystem fs.FS, fsPath string, reloadType ReloadType) error {
 	fsPath = path.Clean(fsPath)
+	fmt.Println("Reloading path:", fsPath, "with type:", reloadType)
 
 	if fsPath == "go.mod" {
 		return m.reloadGoMod(filesystem, fsPath)

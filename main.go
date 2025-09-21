@@ -52,7 +52,23 @@ func main() {
 
 	err = watcher.Watch(context.Background(), ".", func(event fsnotify.Event) {
 		fmt.Printf("File changed: %s\n", event.Name)
-		module.Reload(fs, event.Name)
+		var rt stats.ReloadType
+		switch {
+		case event.Op&fsnotify.Write == fsnotify.Write:
+			rt = stats.ReloadTypeWrite
+		case event.Op&fsnotify.Remove == fsnotify.Remove:
+			rt = stats.ReloadTypeRemove
+		case event.Op&fsnotify.Rename == fsnotify.Rename:
+			rt = stats.ReloadTypeRename
+		default:
+			fmt.Printf("Unhandled file event: %s\n", event.Op.String())
+			return
+		}
+		err := module.Reload(fs, event.Name, rt)
+		if err != nil {
+			fmt.Println("Error reloading module:", err)
+			return
+		}
 	})
 	if err != nil {
 		fmt.Println("Error watching files:", err)
