@@ -6,9 +6,11 @@ import (
 	"os"
 	"path"
 	"strings"
-
-	"github.com/go-git/go-git/v6/plumbing/format/gitignore"
 )
+
+type Matcher interface {
+	Match(path []string, isDir bool) bool
+}
 
 type PackageAndTests struct {
 	Pkg   *Package
@@ -20,10 +22,10 @@ type Module struct {
 	Packages []*PackageAndTests
 
 	directory string
-	ignores   gitignore.Matcher
+	ignores   Matcher
 }
 
-func ParseModule(filesystem fs.FS, dirPath string, ignores gitignore.Matcher) (*Module, error) {
+func ParseModule(filesystem fs.FS, dirPath string, ignores Matcher) (*Module, error) {
 	module := &Module{
 		directory: dirPath,
 		ignores:   ignores,
