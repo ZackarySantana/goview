@@ -14,12 +14,27 @@ import (
 type ReloadType int
 
 const (
-	ReloadTypeWrite ReloadType = iota
+	ReloadTypeUpdate ReloadType = iota
 	ReloadTypeRemove
 	ReloadTypeRename
+	ReloadTypeCreate
 )
 
+// Reload reloads the whole module. This is a simple but inefficient way to handle file changes.
 func (m *Module) Reload(filesystem fs.FS, fsPath string, reloadType ReloadType) error {
+	newModule, err := ParseModule(filesystem, m.directory, m.ignores)
+	if err != nil {
+		return fmt.Errorf("reloading module: %w", err)
+	}
+	*m = *newModule
+	fmt.Println("Reloading module")
+
+	return nil
+}
+
+// FineGrainedReload reloads only the affected parts of the module based on the file change event.
+// This is under development and does not cover all edge cases yet.
+func (m *Module) FineGrainedReload(filesystem fs.FS, fsPath string, reloadType ReloadType) error {
 	fsPath = path.Clean(fsPath)
 	fmt.Println("Reloading path:", fsPath, "with type:", reloadType)
 
@@ -35,8 +50,8 @@ func (m *Module) Reload(filesystem fs.FS, fsPath string, reloadType ReloadType) 
 		return m.reloadGoFile(filesystem, fsPath)
 	}
 
+	// TODO: We should check if it's a file or directory.
 	// it might be a file or a directory, it's hard to tell with fsnotify events
-
 	return m.reloadDirectory(filesystem, fsPath)
 
 }

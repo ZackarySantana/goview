@@ -19,12 +19,14 @@ type Module struct {
 	GoMod    *GoMod
 	Packages []*PackageAndTests
 
-	ignores gitignore.Matcher
+	directory string
+	ignores   gitignore.Matcher
 }
 
 func ParseModule(filesystem fs.FS, dirPath string, ignores gitignore.Matcher) (*Module, error) {
 	module := &Module{
-		ignores: ignores,
+		directory: dirPath,
+		ignores:   ignores,
 	}
 
 	goModPath := path.Join(dirPath, "go.mod")

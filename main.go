@@ -27,7 +27,6 @@ func Main() {
 }
 
 func main() {
-
 	gitIgnore := []string{".git", "node_modules"}
 	patterns := make([]gitignore.Pattern, len(gitIgnore))
 	for i, p := range gitIgnore {
@@ -35,8 +34,10 @@ func main() {
 	}
 	ignores := gitignore.NewMatcher(patterns)
 
-	fs := os.DirFS(".")
-	module, err := stats.ParseModule(fs, ".", ignores)
+	directory := "."
+
+	fs := os.DirFS(directory)
+	module, err := stats.ParseModule(fs, directory, ignores)
 	if err != nil {
 		fmt.Println("Error parsing module:", err)
 		return
@@ -44,22 +45,24 @@ func main() {
 
 	fmt.Printf("Module: %+v\n", module.GoMod)
 
-	watcher, err := watcher.NewWatcher(context.Background(), ".", ignores)
+	watcher, err := watcher.NewWatcher(context.Background(), directory, ignores)
 	if err != nil {
 		fmt.Println("Error creating watcher:", err)
 		return
 	}
 
-	err = watcher.Watch(context.Background(), ".", func(event fsnotify.Event) {
+	err = watcher.Watch(context.Background(), func(event fsnotify.Event) {
 		fmt.Printf("File changed: %s\n", event.Name)
 		var rt stats.ReloadType
 		switch {
 		case event.Op&fsnotify.Write == fsnotify.Write:
-			rt = stats.ReloadTypeWrite
+			rt = stats.ReloadTypeUpdate
 		case event.Op&fsnotify.Remove == fsnotify.Remove:
 			rt = stats.ReloadTypeRemove
 		case event.Op&fsnotify.Rename == fsnotify.Rename:
 			rt = stats.ReloadTypeRename
+		case event.Op&fsnotify.Create == fsnotify.Create:
+			rt = stats.ReloadTypeCreate
 		default:
 			fmt.Printf("Unhandled file event: %s\n", event.Op.String())
 			return

@@ -15,28 +15,30 @@ import (
 )
 
 type Watcher struct {
-	w       *fsnotify.Watcher
-	ignores gitignore.Matcher
+	w         *fsnotify.Watcher
+	ignores   gitignore.Matcher
+	directory string
 
 	mu      sync.Mutex
 	watched map[string]struct{}
 }
 
 // NewWatcher creates a recursive watcher rooted at rootDir.
-func NewWatcher(ctx context.Context, rootDir string, ignores gitignore.Matcher) (*Watcher, error) {
+func NewWatcher(ctx context.Context, dir string, ignores gitignore.Matcher) (*Watcher, error) {
 	w, err := fsnotify.NewWatcher()
 	if err != nil {
 		return nil, err
 	}
 	wd := &Watcher{
-		w:       w,
-		ignores: ignores,
-		mu:      sync.Mutex{},
-		watched: make(map[string]struct{}),
+		w:         w,
+		ignores:   ignores,
+		directory: dir,
+		mu:        sync.Mutex{},
+		watched:   make(map[string]struct{}),
 	}
 
 	// Add all existing dirs
-	if err := wd.addDirRecursive(rootDir); err != nil {
+	if err := wd.addDirRecursive(dir); err != nil {
 		_ = w.Close()
 		return nil, err
 	}
@@ -50,20 +52,20 @@ func NewWatcher(ctx context.Context, rootDir string, ignores gitignore.Matcher) 
 	return wd, nil
 }
 
-func (wd *Watcher) Watch(ctx context.Context, root string, callback func(event fsnotify.Event)) error {
+func (wd *Watcher) Watch(ctx context.Context, callback func(event fsnotify.Event)) error {
 	go func() {
 		<-ctx.Done()
 		_ = wd.w.Close()
 	}()
 
-	if err := os.MkdirAll(root, 0o755); err != nil {
+	if err := os.MkdirAll(wd.directory, 0o755); err != nil {
 		return err
 	}
 
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	fmt.Println("Watching:", root)
+	fmt.Println("Watching:", wd.directory)
 	for ev := range wd.Events(ctx) {
 		// fmt.Printf("event: %-10s %s\n", opString(ev.Op), ev.Name)
 		callback(ev)
