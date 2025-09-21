@@ -39,19 +39,17 @@ func main() {
 	fs := os.DirFS(directory)
 	module, err := stats.ParseModule(fs, directory, ignores)
 	if err != nil {
-		fmt.Println("Error parsing module:", err)
-		return
+		panic("Error parsing module: " + err.Error())
 	}
 
 	fmt.Printf("Module: %+v\n", module.GoMod)
 
 	watcher, err := watcher.NewWatcher(context.Background(), directory, ignores)
 	if err != nil {
-		fmt.Println("Error creating watcher:", err)
-		return
+		panic("Error creating watcher: " + err.Error())
 	}
 
-	err = watcher.Watch(context.Background(), func(event fsnotify.Event) {
+	err = watcher.Watch(context.Background(), func(event fsnotify.Event) error {
 		fmt.Printf("File changed: %s\n", event.Name)
 		var rt stats.ReloadType
 		switch {
@@ -64,17 +62,15 @@ func main() {
 		case event.Op&fsnotify.Create == fsnotify.Create:
 			rt = stats.ReloadTypeCreate
 		default:
-			fmt.Printf("Unhandled file event: %s\n", event.Op.String())
-			return
+			return fmt.Errorf("unhandled file event: %s", event.Op.String())
 		}
 		err := module.Reload(fs, event.Name, rt)
 		if err != nil {
-			fmt.Println("Error reloading module:", err)
-			return
+			return fmt.Errorf("reloading module: %w", err)
 		}
+		return nil
 	})
 	if err != nil {
-		fmt.Println("Error watching files:", err)
-		return
+		panic("Error watching files: " + err.Error())
 	}
 }
