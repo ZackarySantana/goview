@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/a-h/templ"
 	"github.com/fsnotify/fsnotify"
@@ -27,6 +29,9 @@ func Main() {
 }
 
 func main() {
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer cancel()
+
 	gitIgnore := []string{".git", "node_modules"}
 	patterns := make([]gitignore.Pattern, len(gitIgnore))
 	for i, p := range gitIgnore {
@@ -44,12 +49,12 @@ func main() {
 
 	fmt.Printf("Module: %+v\n", module.GoMod)
 
-	watcher, err := watcher.NewWatcher(context.Background(), directory, ignores)
+	watcher, err := watcher.NewWatcher(ctx, directory, ignores)
 	if err != nil {
 		panic("Error creating watcher: " + err.Error())
 	}
 
-	err = watcher.Watch(context.Background(), func(event fsnotify.Event) error {
+	err = watcher.Watch(ctx, func(event fsnotify.Event) error {
 		fmt.Printf("File changed: %s\n", event.Name)
 		var rt stats.ReloadType
 		switch {
