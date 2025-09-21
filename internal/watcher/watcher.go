@@ -52,7 +52,7 @@ func NewWatcher(ctx context.Context, dir string, ignores gitignore.Matcher) (*Wa
 	return wd, nil
 }
 
-func (wd *Watcher) Watch(ctx context.Context, callback func(event fsnotify.Event)) error {
+func (wd *Watcher) Watch(ctx context.Context, callback func(event fsnotify.Event) error) error {
 	go func() {
 		<-ctx.Done()
 		_ = wd.w.Close()
@@ -66,12 +66,14 @@ func (wd *Watcher) Watch(ctx context.Context, callback func(event fsnotify.Event
 	defer cancel()
 
 	fmt.Println("Watching:", wd.directory)
+	var err error
 	for ev := range wd.Events(ctx) {
-		// fmt.Printf("event: %-10s %s\n", opString(ev.Op), ev.Name)
-		callback(ev)
+		if err = callback(ev); err != nil {
+			break
+		}
 	}
 
-	return nil
+	return err
 }
 
 func (wd *Watcher) addDirRecursive(root string) error {
